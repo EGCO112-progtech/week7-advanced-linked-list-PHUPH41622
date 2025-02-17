@@ -1,8 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 // self-referential structure
 struct Node {
    int data; // each listNode contains a character
    struct Node *nextPtr; // pointer to next node
+   struct Node *prevPtr; // pointer to previous node
 }; // end structure listNode
 
 typedef struct Node LLnode; // synonym for struct listNode
@@ -14,7 +17,9 @@ int deletes( LLPtr *sPtr, int value );
 int isEmpty( LLPtr sPtr );
 void insert( LLPtr *sPtr, int value );
 void printList( LLPtr currentPtr );
+void printListReverse( LLPtr currentPtr );
 void instructions( void );
+void deleteList( LLPtr *sPtr );
 
 
 // display program instructions to user
@@ -38,8 +43,7 @@ void insert( LLPtr *sPtr, int value )
    if ( newPtr != NULL ) { // is space available
       newPtr->data = value; // place value in node
       newPtr->nextPtr = NULL; // node does not link to another node
-    
-       
+   
       previousPtr = NULL;
       currentPtr = *sPtr;
 
@@ -52,16 +56,16 @@ void insert( LLPtr *sPtr, int value )
       // insert new node at beginning of list
       if ( previousPtr == NULL ) {
          newPtr->nextPtr = *sPtr;
-      
+         if(*sPtr) (*sPtr)->prevPtr = newPtr;
          *sPtr = newPtr;
         
       } // end if
       else { // insert new node between previousPtr and currentPtr
          previousPtr->nextPtr = newPtr;
-   
+         newPtr->prevPtr = previousPtr;
           
          newPtr->nextPtr = currentPtr;
- 
+         if (currentPtr != NULL) currentPtr->prevPtr = newPtr;
          
       } // end else
    } // end if
@@ -71,8 +75,7 @@ void insert( LLPtr *sPtr, int value )
 } // end function insert
 
 // delete a list element
-int deletes( LLPtr *sPtr, int value )
-{
+int deletes( LLPtr *sPtr, int value ) {
    LLPtr previousPtr; // pointer to previous node in list
    LLPtr currentPtr; // pointer to current node in list
    LLPtr tempPtr; // temporary node pointer
@@ -81,6 +84,7 @@ int deletes( LLPtr *sPtr, int value )
    if ( value == ( *sPtr )->data ) {
       tempPtr = *sPtr; // hold onto node being removed
       *sPtr = ( *sPtr )->nextPtr; // de-thread the node
+      if(*sPtr) (*sPtr)->prevPtr = NULL;
       free( tempPtr ); // free the de-threaded node
       return value;
    } // end if
@@ -95,9 +99,11 @@ int deletes( LLPtr *sPtr, int value )
       } // end while
 
       // delete node at currentPtr
-      if ( currentPtr != NULL ) {
+      if ( currentPtr != NULL ) { // currentPtr->data == value
          tempPtr = currentPtr;
-         previousPtr->nextPtr = currentPtr->nextPtr;
+         currentPtr = currentPtr->nextPtr;
+         previousPtr->nextPtr = currentPtr;
+         if(currentPtr) currentPtr->prevPtr = previousPtr;
          free( tempPtr );
          return value;
       } // end if
@@ -107,14 +113,12 @@ int deletes( LLPtr *sPtr, int value )
 } // end function delete
 
 // return 1 if the list is empty, 0 otherwise
-int isEmpty( LLPtr sPtr )
-{
+int isEmpty( LLPtr sPtr ) {
    return sPtr == NULL;
 } // end function isEmpty
 
 // print the list
-void printList( LLPtr currentPtr )
-{
+void printList( LLPtr currentPtr ) {
    // if list is empty
    if ( isEmpty( currentPtr ) ) {
       puts( "List is empty.\n" );
@@ -130,8 +134,41 @@ void printList( LLPtr currentPtr )
 
       printf( "%d --> NULL\n",currentPtr->data );
        
-
-     
-       
    } // end else
 } // end function printList
+
+void printListReverse( LLPtr currentPtr ) {
+   if (isEmpty(currentPtr)) {
+      puts( "List is empty.\n" );
+   } else {
+
+      int size = 0;
+      printf("NULL ");
+
+      while ( currentPtr->nextPtr!= NULL ) {
+         currentPtr = currentPtr->nextPtr;
+         size++;
+      } // end while
+
+      while (size >= 0) {
+         printf("<-- %d ", currentPtr->data);
+         currentPtr = currentPtr->prevPtr;
+         size--;
+      }
+      printf("\n");
+   }
+}
+
+void deleteList( LLPtr *sPtr ) {
+   LLPtr currentPtr = *sPtr;
+   LLPtr tempPtr;
+
+   while (currentPtr != NULL) {
+      tempPtr = currentPtr;
+      currentPtr = currentPtr->nextPtr;
+      printf("Deleting %d\n", tempPtr->data);
+      free(tempPtr);
+   }
+
+   *sPtr = NULL;
+}
