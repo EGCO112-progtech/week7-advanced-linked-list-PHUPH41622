@@ -56,6 +56,7 @@ int main( void ) {
    } // end while
    /* Clear all nodes at the end of nodes*/
    puts( "Clear all nodes." );
-   deleteList(&startPtr);
    printf("End of run.\n");
+
+   deleteList(&startPtr);
 } // end main
